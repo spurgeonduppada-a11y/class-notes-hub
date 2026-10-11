@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import Markdown from 'react-markdown';
 
 const CURRENT_SEMESTER_DATA = [
   {
@@ -92,14 +93,20 @@ const CURRENT_SEMESTER_DATA = [
     ]
   }
 ];
-
 export default function App() {
   const [selectedSubject, setSelectedSubject] = useState(CURRENT_SEMESTER_DATA[0]);
   const [activeTab, setActiveTab] = useState('units');
   const [searchQuery, setSearchQuery] = useState('');
   const [aiModal, setAiModal] = useState({ open: false, title: '', topic: '', isAssignment: false });
   const [userQuestion, setUserQuestion] = useState('');
-  const [aiAnswer, setAiAnswer] = useState('');
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isLoading]);
 
   const filteredSubjects = CURRENT_SEMESTER_DATA.filter((sub) =>
     sub.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -107,22 +114,80 @@ export default function App() {
 
   const openAiAssistant = (title, topic, isAssignment = false) => {
     setUserQuestion('');
-    setAiAnswer('');
+    setChatMessages([
+      {
+        role: 'model',
+        text: `Hello! I am your AI study assistant for **${title}** on the topic **${topic}**. Ask me any question, concept, or problem you want help with!`
+      }
+    ]);
     setAiModal({ open: true, title, topic, isAssignment });
   };
 
   const closeAiAssistant = () => {
     setAiModal({ open: false, title: '', topic: '', isAssignment: false });
+    setChatMessages([]);
+    setUserQuestion('');
+    setIsLoading(false);
   };
 
-  const handleAiAsk = () => {
-    if (!userQuestion.trim()) return;
-    setAiAnswer(
-      'Analysis for "' + userQuestion + '":\n\n' +
-      '1. Core Topic: ' + aiModal.topic + '\n' +
-      '2. Exam / Viva Tip: Structure with clear definitions, diagrams, and steps.\n' +
-      '3. Method: Verify boundary cases and key properties.'
-    );
+  const handleAiAsk = async () => {
+    if (!userQuestion.trim() || isLoading) return;
+
+    const currentQ = userQuestion.trim();
+    setUserQuestion('');
+
+    const newHistory = [...chatMessages, { role: 'user', text: currentQ }];
+    setChatMessages(newHistory);
+    setIsLoading(true);
+
+    const contentsPayload = [
+      {
+        role: 'user',
+        parts: [{
+          text: `You are an expert college professor and helpful AI tutor for "${aiModal.title}". The context topic is "${aiModal.topic}".
+Instructions:
+1. Always answer every single query thoroughly, directly, and clearly.
+2. Structure your answers with Markdown: use headers, bold text, bullet points, and code blocks if applicable.
+3. If the user asks about the course, break down the mechanisms step-by-step with real-world examples.
+4. If the user asks general or follow-up questions, answer them completely without refusing.`
+        }]
+      },
+      {
+        role: 'model',
+        parts: [{ text: "Understood. I will provide comprehensive, clearly formatted answers for every query." }]
+      },
+      ...newHistory.map((msg) => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+      }))
+    ];
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: contentsPayload })
+        }
+      );
+
+      const data = await res.json();
+      const candidate = data?.candidates?.[0];
+      const reply = candidate?.content?.parts?.map((p) => p.text).filter(Boolean).join('\n')
+        || (candidate?.finishReason ? `Response completed with status: ${candidate.finishReason}` : null)
+        || data?.error?.message
+        || "I understood your query, but could not produce a response. Please check your prompt or API key.";
+
+      setChatMessages([...newHistory, { role: 'model', text: reply }]);
+    } catch (error) {
+      setChatMessages([
+        ...newHistory,
+        { role: 'model', text: 'Error connecting to Gemini. Please check your network connection and API key.' }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', fontFamily: 'sans-serif', padding: '2rem' }}>
@@ -347,86 +412,109 @@ export default function App() {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '1.5rem',
+          padding: '1rem',
           zIndex: 1000
         }}>
           <div style={{
             backgroundColor: '#1e293b',
-            padding: '1.75rem',
+            padding: '1.5rem',
             borderRadius: '12px',
-            maxWidth: '600px',
+            maxWidth: '680px',
             width: '100%',
-            border: '1px solid #475569'
+            height: '85vh',
+            display: 'flex',
+            flexDirection: 'column',
+            border: '1px solid #475569',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ margin: 0, color: '#38bdf8', fontSize: '1.25rem' }}>{aiModal.title}</h3>
-              <button onClick={closeAiAssistant} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-            </div>
-            
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1rem' }}>
-              Selected Focus: <strong style={{ color: '#f8fafc' }}>{aiModal.topic}</strong>
-            </p>
-
-            <div style={{ backgroundColor: '#0f172a', padding: '1rem', borderRadius: '8px', fontSize: '0.88rem', color: '#cbd5e1', marginBottom: '1rem' }}>
-              <strong>⚡ Quick AI Insights:</strong>
-              <ul style={{ margin: '0.5rem 0 0 1.25rem', padding: 0 }}>
-                <li>{aiModal.isAssignment ? 'Key methodology and solution structure identified.' : 'Key theoretical definitions mapped.'}</li>
-                <li>{aiModal.isAssignment ? 'Ensure standard steps are verified.' : 'Focus on core principles.'}</li>
-              </ul>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.75rem', borderBottom: '1px solid #334155' }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#38bdf8', fontSize: '1.2rem' }}>{aiModal.title}</h3>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Focus: {aiModal.topic}</span>
+              </div>
+              <button onClick={closeAiAssistant} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.75rem', cursor: 'pointer', padding: 0 }}>×</button>
             </div>
 
-            <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              padding: '1rem 0',
+              margin: '0.5rem 0'
+            }}>
+              {chatMessages.map((msg, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                    maxWidth: '85%'
+                  }}
+                >
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.25rem', alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                    {msg.role === 'user' ? 'You' : 'Gemini'}
+                  </span>
+                  <div
+                    style={{
+                      padding: '0.85rem 1rem',
+                      borderRadius: '10px',
+                      backgroundColor: msg.role === 'user' ? '#0284c7' : '#0f172a',
+                      color: '#f8fafc',
+                      fontSize: '0.92rem',
+                      lineHeight: '1.6',
+                      border: msg.role === 'model' ? '1px solid #334155' : 'none'
+                    }}
+                  >
+                    <Markdown>{msg.text}</Markdown>
+                  </div>
+                </div>
+              ))}
+
+              {isLoading && (
+                <div style={{ alignSelf: 'flex-start', color: '#38bdf8', fontSize: '0.85rem', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span>Gemini is thinking...</span>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid #334155' }}>
               <input
                 type="text"
-                placeholder="Ask AI a question..."
+                placeholder="Ask any question or follow-up..."
                 value={userQuestion}
                 onChange={(e) => setUserQuestion(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAiAsk()}
+                disabled={isLoading}
                 style={{
                   flex: 1,
-                  padding: '0.6rem 0.8rem',
-                  borderRadius: '6px',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
                   border: '1px solid #334155',
                   backgroundColor: '#0f172a',
                   color: '#fff',
-                  outline: 'none'
+                  outline: 'none',
+                  fontSize: '0.95rem'
                 }}
               />
               <button
                 onClick={handleAiAsk}
+                disabled={isLoading || !userQuestion.trim()}
                 style={{
-                  padding: '0.6rem 1rem',
-                  backgroundColor: '#8b5cf6',
+                  padding: '0.75rem 1.25rem',
+                  backgroundColor: isLoading || !userQuestion.trim() ? '#475569' : '#8b5cf6',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
+                  borderRadius: '8px',
+                  cursor: isLoading || !userQuestion.trim() ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '0.95rem'
                 }}
               >
-                Ask
-              </button>
-            </div>
-
-            {aiAnswer && (
-              <div style={{ backgroundColor: '#0f172a', padding: '0.85rem', borderRadius: '8px', fontSize: '0.85rem', color: '#e2e8f0', whiteSpace: 'pre-line', border: '1px solid #3b82f6', marginBottom: '1rem' }}>
-                {aiAnswer}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                onClick={closeAiAssistant}
-                style={{
-                  padding: '0.5rem 1.25rem',
-                  backgroundColor: '#334155',
-                  border: 'none',
-                  borderRadius: '6px',
-                  color: '#fff',
-                  cursor: 'pointer'
-                }}
-              >
-                Close
+                Send
               </button>
             </div>
           </div>
