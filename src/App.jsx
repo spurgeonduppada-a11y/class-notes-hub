@@ -24,9 +24,9 @@ const CURRENT_SEMESTER_DATA = [
     id: 'cn',
     title: 'Computer Networks',
     units: [
-      { unit: 1, name: 'Physical Layer', notesUrl: '#' },
-      { unit: 2, name: 'Data Link Layer', notesUrl: '#' },
-      { unit: 3, name: 'Network Layer', notesUrl: '/unit3.pdf' },
+      { unit: 1, name: 'Physical Layer', notesUrl: 'public/CN UNIT-1.pdf' },
+      { unit: 2, name: 'Data Link Layer', notesUrl: 'public/3-1 CN Unit 2 Final ppt - Print.pdf' },
+      { unit: 3, name: 'Network Layer', notesUrl: 'public/CN UNIT 3 F.pdf' },
       { unit: 4, name: 'Transport Layer: TCP Congestion Control & UDP', notesUrl: '#' },
       { unit: 5, name: 'Application Layer: DNS, HTTP, SMTP & Security', notesUrl: '#' },
     ],
@@ -42,8 +42,8 @@ const CURRENT_SEMESTER_DATA = [
     id: 'ai',
     title: 'Artificial Intelligence',
     units: [
-      { unit: 1, name: 'Introduction to AI Agents & Uninformed Search', notesUrl: '#' },
-      { unit: 2, name: 'Informed Heuristic Search (A*, Greedy) & Games', notesUrl: '#' },
+      { unit: 1, name: 'Introduction to AI Agents & Uninformed Search', notesUrl: 'public/AI-1.pdf' },
+      { unit: 2, name: 'Informed Heuristic Search (A*, Greedy) & Games', notesUrl: 'public/AI UNIT 1&2.DOCX' },
       { unit: 3, name: 'Knowledge Representation & First-Order Logic', notesUrl: '#' },
       { unit: 4, name: 'Probabilistic Reasoning & Bayesian Networks', notesUrl: '#' },
       { unit: 5, name: 'Reinforcement Learning & Modern Expert Systems', notesUrl: '#' },
@@ -60,10 +60,10 @@ const CURRENT_SEMESTER_DATA = [
     id: 'ooad',
     title: 'Object Oriented Analysis and Design',
     units: [
-      { unit: 1, name: 'Introduction to UML', notesUrl: '#' },
+      { unit: 1, name: 'Introduction to UML', notesUrl: 'public/unit-1ooad.pdf' },
       { unit: 2, name: 'Basic Structural Modelling', notesUrl: '#' },
-      { unit: 3, name: 'Basic Behavioural Modelling', notesUrl: '#' },
-      { unit: 4, name: 'Advanced Behavioral Modelling', notesUrl: '#' },
+      { unit: 3, name: 'Basic Behavioural Modelling', notesUrl: 'public/UML UNIT 3.pdf' },
+      { unit: 4, name: 'Advanced Behavioral Modelling', notesUrl: 'public/UML UNIT 4-1.doc' },
       { unit: 5, name: 'Architectural Modelling', notesUrl: '#' },
     ],
     assignments: [
