@@ -25,7 +25,7 @@ const CURRENT_SEMESTER_DATA = [
     title: 'Computer Networks',
     units: [
       { unit: 1, name: 'Physical Layer', notesUrl: '/CN UNIT-1.pdf' },
-      { unit: 2, name: 'Data Link Layer', notesUrl: '/3-1 CN Unit 2 Final ppt - Print.pdf' },
+      { unit: 2, name: 'Data Link Layer', notesUrl: '/3-1  CN Unit 2  Final ppt - Print.pdf' },
       { unit: 3, name: 'Network Layer', notesUrl: '/CN UNIT 3 F.pdf' },
       { unit: 4, name: 'Transport Layer: TCP Congestion Control & UDP', notesUrl: '#' },
       { unit: 5, name: 'Application Layer: DNS, HTTP, SMTP & Security', notesUrl: '#' },
