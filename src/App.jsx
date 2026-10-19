@@ -63,7 +63,7 @@ const CURRENT_SEMESTER_DATA = [
       { unit: 1, name: 'Introduction to UML', notesUrl: '/unit-1ooad.pdf' },
       { unit: 2, name: 'Basic Structural Modelling', notesUrl: '#' },
       { unit: 3, name: 'Basic Behavioural Modelling', notesUrl: '/UML UNIT 3.pdf' },
-      { unit: 4, name: 'Advanced Behavioral Modelling', notesUrl: '/UML UNIT 4-1.doc' },
+      { unit: 4, name: 'Advanced Behavioral Modelling', notesUrl: '/UML UNIT 4-1.pdf' },
       { unit: 5, name: 'Architectural Modelling', notesUrl: '#' },
     ],
     assignments: [
