@@ -78,7 +78,7 @@ const CURRENT_SEMESTER_DATA = [
     id: 'gs',
     title: 'Gender Sensitization',
     units: [
-      { unit: 1, name: 'Understanding Gender, Sex & Socialization Roles', notesUrl: '#' },
+      { unit: 1, name: 'Understanding Gender, Sex & Socialization Roles', notesUrl: '/unit 1gn.pdf' },
       { unit: 2, name: 'Gender Power Relations & Institutional Inequality', notesUrl: '#' },
       { unit: 3, name: 'Gender-Based Violence, Safety & Legal Protections', notesUrl: '#' },
       { unit: 4, name: 'Gender in the Workplace, Leadership & Wage Equality', notesUrl: '#' },
